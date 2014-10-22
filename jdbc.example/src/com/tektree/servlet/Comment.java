@@ -2,6 +2,11 @@ package com.tektree.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -14,13 +19,14 @@ import javax.servlet.http.HttpSession;
  * Servlet implementation class PracticeServlet
  */
 @WebServlet("/PracticeServlet")
-public class PracticeServlet extends HttpServlet {
+public class Comment extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	private PrintWriter out;
 
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
-	public PracticeServlet() {
+	public Comment() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
@@ -57,12 +63,55 @@ public class PracticeServlet extends HttpServlet {
 		PrintWriter writer = response.getWriter();
 		
 		// store the comment in database here
-		// Save and get a request-scoped value
-		//request.setAttribute("com.tektree.servlet", "comment");
-		//Object comment = request.getAttribute("com.tektree.servlet");
-		HttpSession session = request.getSession();
-		Object comment = null;
-		session.setAttribute("comment", comment);
+		String comment= request.getParameter("comment");
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Connection connection=null;
+		try{
+			connection=DriverManager.getConnection("jdbc:mysql://localhost/coursework","root","mint");
+			Statement statement=connection.createStatement();
+			ResultSet rs= statement.executeQuery("insert into comments"); //insert the comment to a table
+			
+			PrintWriter out = null;
+			out.println("<HTML>");
+            // Start on the body
+            out.println("<BODY>");
+            out.println("<CENTER>");
+            out.println("<table BORDER=1 CELLPADDING=0 CELLSPACING=0 WIDTH=50% >");
+            while (rs.next()){
+
+            out.println("<tr>");
+            out.print("<td>"+rs.getString("Name")+ "</td>");
+            out.print("<td>"+rs.getString("Comments")+ "</td>");
+            out.println("</tr>");
+            
+            }
+		}
+			
+		 catch (SQLException e) {
+			 out = null;
+			out.println("</table>");
+             out.println("</CENTER>");
+             out.println("</BODY></HTML>");
+		}
+		finally{
+			if(connection !=null){
+				System.out.println("Will close the connection object.");
+				try {
+					connection.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		
+		
 		
 		writer.print("You have posted " + request.getParameter("comment"));
 	}
