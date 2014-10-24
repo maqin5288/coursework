@@ -15,13 +15,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.mysql.jdbc.ResultSetMetaData;
+
 /**
  * Servlet implementation class PracticeServlet
  */
 @WebServlet("/PracticeServlet")
 public class Comment extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private PrintWriter out;
+	private String querySesult;
+	
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -39,18 +42,15 @@ public class Comment extends HttpServlet {
 			HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		PrintWriter writer = response.getWriter();
-		writer.println("<html>\n" + 
-				"<head>\n" + 
-				"<title>Comments</title>\n" + 
-				"</head>\n" + 
-				"<body>\n" + 
-				"<form method=\"post\" action=\"#\">\n" + 
-				"<label>Comment:</label>&nbsp;&nbsp;&nbsp;<textarea name=\"comment\"></textarea>\n" + 
-				"<br>\n" + 
-				"<input type=\"submit\" value=\"Submit\">\n" + 
-				"</form>\n" + 
-				"</body>\n" + 
-				"</html>");
+		writer.println("<html>\n"
+				+ "<head>\n"
+				+ "<title>Comments</title>\n"
+				+ "</head>\n"
+				+ "<body>\n"
+				+ "<form method=\"post\" action=\"#\">\n"
+				+ "<label>Comment:</label>&nbsp;&nbsp;&nbsp;<textarea name=\"comment\"></textarea>\n"
+				+ "<br>\n" + "<input type=\"submit\" value=\"Submit\">\n"
+				+ "</form>\n" + "</body>\n" + "</html>");
 	}
 
 	/**
@@ -61,45 +61,62 @@ public class Comment extends HttpServlet {
 			HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		PrintWriter writer = response.getWriter();
-		
+
 		// store the comment in database here
-		String comment= request.getParameter("comment");
+		String comment = request.getParameter("comment");
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		Connection connection=null;
-		try{
-			connection=DriverManager.getConnection("jdbc:mysql://localhost/coursework","root","mint");
-			Statement statement=connection.createStatement();
-			ResultSet rs= statement.executeQuery("insert into comments"); //insert the comment to a table
+		Connection connection = null;
+		try {
+			connection = DriverManager.getConnection(
+					"jdbc:mysql://localhost/coursework", "root", "mint");
+			Statement statement = connection.createStatement();
+			String sql="insert into comments values('"+request.getParameter("comment")+"')";
+			System.out.println(sql);
+			statement.executeUpdate(sql); 
 			
-			PrintWriter out = null;
-			out.println("<HTML>");
-            // Start on the body
-            out.println("<BODY>");
-            out.println("<CENTER>");
-            out.println("<table BORDER=1 CELLPADDING=0 CELLSPACING=0 WIDTH=50% >");
-            while (rs.next()){
+			ResultSet resultSet=statement.executeQuery("select*from comments");
+		
+			//Statement statement = connection.createStatement();
+			ResultSet resulSet = statement.executeQuery(sql);
+			java.sql.ResultSetMetaData rsmd = resulSet.getMetaData();
+			//ResultSetMetaData rsmd = resultSet.getMetaData();
+			int columnsNumber = rsmd.getColumnCount();                     
 
-            out.println("<tr>");
-            out.print("<td>"+rs.getString("Name")+ "</td>");
-            out.print("<td>"+rs.getString("Comments")+ "</td>");
-            out.println("</tr>");
-            
-            }
-		}
+			// Iterate through the data in the result set and display it. 
+
+			while (resulSet.next()) {
+			//Print one row          
+			for(int i = 1 ; i <= columnsNumber; i++){
+
+			      System.out.print(resulSet.getString(i) + " "); //Print one element of a row
+
+			}
+
+			  System.out.println();//Move to the next line to print the next row.           
+
+			    }
+
+			int columnsNumber1 = rsmd.getColumnCount();
+
 			
-		 catch (SQLException e) {
-			 out = null;
-			out.println("</table>");
-             out.println("</CENTER>");
-             out.println("</BODY></HTML>");
+			
+			
+			
+			
+			
+			
+			
 		}
-		finally{
-			if(connection !=null){
+
+		catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (connection != null) {
 				System.out.println("Will close the connection object.");
 				try {
 					connection.close();
@@ -109,10 +126,7 @@ public class Comment extends HttpServlet {
 				}
 			}
 		}
-		
-		
-		
-		
+
 		writer.print("You have posted " + request.getParameter("comment"));
 	}
 
